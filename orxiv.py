@@ -43,35 +43,12 @@ arxiv_groups = map(lambda elm : 'cat:' + elm, [
         'math.SG'])
 arxiv_rss_url = r'http://export.arxiv.org/api/query?search_query=%s&sortBy=submittedDate&start=0&max_results=500' % string.join(arxiv_groups, '+OR+')
 author_filter = [
-        r'(Antonio|A\.)? (J\.)? ?Dur(a|á)n', 
-        r'Noud Aldenhoven',
-        r'Erik Koelink',
-        r'Kenny De Commer',
-        r'Wolter Groenevelt',
-        r'Mourad E\. H\. Ismail',
-        r'Pablo Roman',
-        r'Ana M\. de los R[i,í]os',
-        r'Maarten van Pruijssen',
-        r'Stefan Kolb',
-        r'Tom H\. Koornwinder',
-        r'Rutger Kuyper',
-        r'Michiel de Bondt',
-        r'Gert Heckman',
-        r'Landsman',
-        r'Maarten Solleveld',
-        r'Jord Boeijink',
-        r'Walter D\. van Suijlekom',
-        r'Kenier Castillo',
-        r'Martijn Caspers',
-        r'Tim de Laat']
+        r'Peter J. Cameron']
 title_filter = [
         r'[Q,q]uantum [G,g]roup',
         r'[O,o]rthogonal [P,p]olynomial',
         r'[M,m]atrix-[V,v]alued',
         r'Chebyshev [p,P]olynomials',
-        r'Askey',
-        r'Wilson',
-        r'Koornwinder',
         r'Riemann [H,h]ypothesis',
         r'[H,h]ypergeometric [F,f]unctions',
         r'[H,h]ypergeometric [S,s]eries']
