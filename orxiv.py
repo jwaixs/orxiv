@@ -6,75 +6,23 @@ import re
 import string
 import os
 import time
+import datetime
 import pickle
 
-arxiv_groups = map(lambda elm : 'cat:' + elm, [
-        'math.AG',
-        'math.AT',
-        'math.AP',
-        'math.CT',
-        'math.CA',
-        'math.CO',
-        'math.AC',
-        'math.CV',
-        'math.DG',
-        'math.DS',
-        'math.FA',
-        'math.GM',
-        'math.GN',
-        'math.GT',
-        'math.GR',
-        'math.HO',
-        'math.IT',
-        'math.KT',
-        'math.LO',
-        'math.MP',
-        'math.MG',
-        'math.NT',
-        'math.NA',
-        'math.OA',
-        'math.OC',
-        'math.PR',
-        'math.QA',
-        'math.RT',
-        'math.RA',
-        'math.SP',
-        'math.ST',
-        'math.SG'])
+ffile = open('categories', 'r')
+arxiv_groups = map(lambda elm : 'cat:' + elm[:-1], ffile.readlines())
+ffile.close()
+
 arxiv_rss_url = r'http://export.arxiv.org/api/query?search_query=%s&sortBy=submittedDate&start=0&max_results=500' % string.join(arxiv_groups, '+OR+')
-author_filter = [
-        r'(Antonio|A\.)? (J\.)? ?Dur(a|á)n', 
-        r'Noud Aldenhoven',
-        r'Erik Koelink',
-        r'Kenny De Commer',
-        r'Wolter Groenevelt',
-        r'Mourad E\. H\. Ismail',
-        r'Pablo Roman',
-        r'Ana M\. de los R[i,í]os',
-        r'Maarten van Pruijssen',
-        r'Stefan Kolb',
-        r'Tom H\. Koornwinder',
-        r'Rutger Kuyper',
-        r'Michiel de Bondt',
-        r'Gert Heckman',
-        r'Landsman',
-        r'Maarten Solleveld',
-        r'Jord Boeijink',
-        r'Walter D\. van Suijlekom',
-        r'Kenier Castillo',
-        r'Martijn Caspers',
-        r'Tim de Laat']
-title_filter = [
-        r'[Q,q]uantum [G,g]roup',
-        r'[O,o]rthogonal [P,p]olynomial',
-        r'[M,m]atrix-[V,v]alued',
-        r'Chebyshev [p,P]olynomials',
-        r'Askey',
-        r'Wilson',
-        r'Koornwinder',
-        r'Riemann [H,h]ypothesis',
-        r'[H,h]ypergeometric [F,f]unctions',
-        r'[H,h]ypergeometric [S,s]eries']
+
+ffile = open('authors', 'r')
+author_filter = map(lambda elm : elm[:-1], ffile.readlines())
+ffile.close()
+
+ffile = open('titles', 'r')
+title_filter = map(lambda elm : elm[:-1], ffile.readlines())
+ffile.close()
+
 UPDATE_TIME = 60*60*12 # 12 hours
 
 
@@ -123,6 +71,13 @@ def printArticle(item):
     authors = string.join([ elm['name'] for elm in item.authors ], ', ')
     print 'Author:', authors
     print 'Title:', item.title
+
+    def parse_time(t):
+        stime = time.strptime(t, '%Y-%m-%dT%H:%M:%SZ')
+        return datetime.datetime.fromtimestamp(time.mktime(stime))
+
+    print 'Published:', parse_time(item.published)
+    print 'Last updated:', parse_time(item.updated)
     print 'Link:', item.link
 
 if __name__ == '__main__':
