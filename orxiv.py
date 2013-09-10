@@ -81,7 +81,8 @@ def printArticle(item):
     print 'Link:', item.link
 
 if __name__ == '__main__':
-    results = set(filterFeedList(author_filter, title_filter))
+    results = list(set(filterFeedList(author_filter, title_filter)))
+    results.sort(key=lambda item : item.updated)
     print 'Found %i hits:' % len(results)
     for result in results:
         print '-----'
