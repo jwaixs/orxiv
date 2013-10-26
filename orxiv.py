@@ -11,8 +11,10 @@ from dateutil import rrule
 import pickle
 import sys
 import argparse
+import urllib2
 
 MAX_RESULTS = 500
+DOWNLOAD_DIR = './new_papers'
 
 def create_arxiv_rss_url(groups, start_date, end_date, start_item, 
         max_results):
@@ -112,10 +114,77 @@ def update_feed(feed_file_name):
 
     return feed
 
+def reporthook(blocknum, blocksize, totalsize):
+    '''http://stackoverflow.com/questions/13881092/download-progressbar-for-python-3'''
+    readsofar = blocknum * blocksize
+    if totalsize > 0:
+        percent = readsofar * 1e2 / totalsize
+        s = "\r%5.1f%% %*d / %d" % (
+            percent, len(str(totalsize)), readsofar, totalsize)
+        sys.stderr.write(s)
+        if readsofar >= totalsize: # near the end
+            sys.stderr.write("\n")
+    else: # total size is unknown
+        sys.stderr.write("read %d\n" % (readsofar,))
+
+
+def download_file(furl, fdest):
+    TOTAL_BLOCKS = 70
+
+    try:
+        print 'Start downloading article.'
+        with open(fdest, 'w') as output:
+            ul = urllib2.urlopen(furl)
+            file_size = int(ul.info().getheaders("Content-Length")[0])
+            chunk_size = file_size / TOTAL_BLOCKS
+            bytes_read = 0
+
+            blocks = 0
+            process = 0.0
+            while True:
+                data = ul.read(chunk_size)
+                bytes_read += len(data)
+                sys.stdout.write('#')
+                sys.stdout.flush()
+                output.write(data)
+                
+                blocks += 1
+                process += 1.0 / TOTAL_BLOCKS
+                process = process if process < 1.0 else 1.0
+
+                process_bar = '\r[{0}] {1}%'.format(
+                    '#'*blocks + '-'*(TOTAL_BLOCKS - blocks), int(process*100))
+                sys.stdout.write(process_bar)
+                sys.stdout.flush()
+                
+                if len(data) < chunk_size:
+                    sys.stdout.write(' done!\n')
+                    sys.stdout.flush()
+                    break
+
+    except IOError:
+        print 'An error occured!'
+        return False
+
+    return True
+
+def download_article(furl, fdir, ftitle):
+    if not os.path.isdir(fdir):
+        os.makedirs(fdir)
+    return download_file(furl, fdir + '/' + ftitle)
+    
+
+def downloadArticle(item):
+    furl = item.link.replace('abs', 'pdf')
+    ftitle = item.link.split('/abs/')[1] + '.pdf'
+    return download_article(furl, DOWNLOAD_DIR, ftitle)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Orxiv - the ArXiv organiser.')
     parser.add_argument('num_days', metavar='N', type=int,
             help='the number of days to go back into the archive.')
+    parser.add_argument('-a', '--auto_download', action='store_true',
+            help='Automaticly download arxiv paper hits')
     args = parser.parse_args()
 
     ffile = open('categories', 'r')
@@ -130,11 +199,13 @@ if __name__ == '__main__':
     title_filter = map(lambda elm : elm[:-1], ffile.readlines())
     ffile.close()
 
-    today = datetime.date.today()
+    today = datetime.date.today() 
     last_date = today - datetime.timedelta(days=args.num_days)
     feeds = get_feeds(last_date, today)
     for date in sorted(feeds.keys()):
         filfeeds = filterFeedList(feeds[date], author_filter, title_filter)
         for article in filfeeds:
             printArticle(article)
+            if args.auto_download:
+                downloadArticle(article)
 
