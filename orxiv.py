@@ -88,46 +88,6 @@ def get_feeds(startdate, enddate):
         time.sleep(1)
     return ret_feeds
 
-def update_feed(feed_file_name):
-    '''Doesn't work!'''
-    try:
-        pfile = open(feed_file_name, 'r')
-        print 'update feed'
-        feed = pickle.load(pfile)
-        last_day = datetime.date.fromtimestamp(
-                os.path.getmtime(feed_file_name)) \
-            + datetime.timedelta(days=1)
-        today = datetime.date.today()
-        feed += get_feed_dates(last_day, today)
-        #for dt in rrule.rrule(rrule.DAILY, dtstart=last_day, until=today):
-        #    feed[datetime.date(dt.year, dt.month, dt.day)] = get_daily_feed(dt)
-        #    print dt - datetime.timedelta(days=1)
-        pfile.close()
-        pfile = open(feed_file_name, 'w')
-        pickle.dump(feed, pfile)
-    except:
-        print 'creating new feed'
-        pfile = open(feed_file_name, 'w')
-        feed = { datetime.date.today() : get_daily_feed(datetime.date.today()) }
-        pickle.dump(feed, pfile)
-        pfile.close()
-
-    return feed
-
-def reporthook(blocknum, blocksize, totalsize):
-    '''http://stackoverflow.com/questions/13881092/download-progressbar-for-python-3'''
-    readsofar = blocknum * blocksize
-    if totalsize > 0:
-        percent = readsofar * 1e2 / totalsize
-        s = "\r%5.1f%% %*d / %d" % (
-            percent, len(str(totalsize)), readsofar, totalsize)
-        sys.stderr.write(s)
-        if readsofar >= totalsize: # near the end
-            sys.stderr.write("\n")
-    else: # total size is unknown
-        sys.stderr.write("read %d\n" % (readsofar,))
-
-
 def download_file(furl, fdest):
     TOTAL_BLOCKS = 70
 
